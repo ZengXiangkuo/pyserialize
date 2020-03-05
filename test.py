@@ -5,6 +5,23 @@ import unittest
 from pyserialize import Serializable, JSON
 
 
+def cmp(dict1, dict2):
+    if type(dict1) != type(dict2):
+        return False
+    if isinstance(dict1, list):
+        for v1, v2 in zip(dict1, dict2):
+            if not cmp(v1, v2):
+                return False
+        return True
+    elif isinstance(dict2, dict):
+        for k, v in dict1.items():
+            if dict2.get(k) is None or not cmp(v, dict2.get(k)):
+                return False
+        return True
+    else:
+        return dict1 == dict2
+
+
 class Point3D(Serializable):
 
     def __init__(self, x=0, y=0, z=0):
@@ -68,11 +85,9 @@ TEST_DATA = {
 class TestSerializable(unittest.TestCase):
 
     def test_point3d_to_json_string(self):
-        point = Point3D(1, 2, 3)
-        point_dict = {'X': 1, 'Y': 2, 'Z': 3}
-        json_str_1 = JSON.to_json_string(point, indent=4)
-        json_str_2 = JSON.to_json_string(point_dict, indent=4)
-        self.assertEqual(json_str_1, json_str_2, self.test_point3d_to_json_string.__name__)
+        point_dict = Point3D(1, 2, 3).dump()
+        point_dict_expected = {'X': 1, 'Y': 2, 'Z': 3}
+        self.assertTrue(cmp(point_dict, point_dict_expected), self.test_point3d_to_json_string.__name__)
 
     def test_parse_point3d(self):
         point_str = JSON.to_json_string({'X': 1, 'Y': 2, 'Z': 3})
@@ -80,10 +95,10 @@ class TestSerializable(unittest.TestCase):
         self.assertTrue(point.x == 1 and point.y == 2 and point.z == 3)
 
     def test_general_example_to_json_string(self):
-        obj_str_1 = JSON.to_json_string(TEST_DATA, indent=4)
-        obj = JSON.parse_object(obj_str_1, GeneralExample)
-        obj_str_2 = JSON.to_json_string(obj, indent=4)
-        self.assertTrue(obj_str_1 == obj_str_2, obj_str_1 + '\n' + obj_str_2)
+        obj_str = JSON.to_json_string(TEST_DATA, indent=4)
+        obj = JSON.parse_object(obj_str, GeneralExample)
+        obj_dict = obj.dump()
+        self.assertTrue(cmp(TEST_DATA, obj_dict))
 
 
 if __name__ == '__main__':
