@@ -7,6 +7,6 @@ setup(
     description='It is a external library for parsing json string to python object.',
     author='Zeng Xiangkuo',
     author_email='zengxiangkuo@outlook.com',
-    url='',
+    url='https://github.com/ZengXiangkuo/pyserialize',
     packages=find_packages('.'),
     zip_safe=False)
